@@ -106,12 +106,25 @@ extension ColorViewController {
         blueSlider.value = Float(ciColor.blue)
     }
     
+    // Значения RGB
     private func string(from slider: UISlider) -> String {
         String(format: "%.2f", slider.value)
     }
+    
+    // Метод отвечает за скрытие клавиатуры
+    @objc private func didTapDone() {
+        view.endEditing(true)
+    }
+    
+    // Прописываем всплывашки, на случай если пользователь ошибется
+    private func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let okAction = UIAlertAction(title: "OK", style: .default)
+        alert.addAction(okAction)
+        present(alert, animated: true)
+    }
 }
-    
-    
+        
     // MARK: - UITextFieldDelegate
     extension ColorViewController: UITextFieldDelegate {
         
@@ -137,9 +150,12 @@ extension ColorViewController {
                 }
                 setColor()
             }
+            
+            showAlert(title: "Wrong format!", message: "Please enter correct value")
         }
         
-        func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        /* Это для обычной клавиатуры
+         func textFieldShouldReturn(_ textField: UITextField) -> Bool {
             if textField == redTextField {
                 greenTextField.becomeFirstResponder()
             }
@@ -147,6 +163,31 @@ extension ColorViewController {
                 blueTextField.becomeFirstResponder()
             }
             return true
+        }
+         */
+        
+        // Для клавы с цифрами, по умолчанию в ней нет толбара, надо его прописать вот так...
+        func textFieldDidBeginEditing(_ textField: UITextField) {
+            let keyboardToolbar = UIToolbar()
+            keyboardToolbar.sizeToFit() //Свойство ".sizeToFit", означает встроить наш тулбар по содержимому
+            textField.inputAccessoryView = keyboardToolbar //Здесь мы говорим что текстовое поле будет иметь аксессуар в виде нашего тулбара
+            
+            // В это клаве нет кнопки done, надо ее сделать вот так, по умолчанию эта кнопка будет располагаться слева
+            let doneButton = UIBarButtonItem(
+                barButtonSystemItem: .done,
+                target: self, //мы говори что в этом классе будет вызван этот метод (target, то есть цель) target для метода didTapDone
+                action: #selector(didTapDone)
+            )
+            
+            // Чтобы переметить кнопку done вправо, с левой стороны надо расположить flexBarButton, свойство ".flexibleSpace" говорит, что flexBarButton займет все свободное пространство с левой стороны
+            let flexBarButton = UIBarButtonItem(
+                barButtonSystemItem: .flexibleSpace,
+                target: nil,
+                action: nil
+            )
+            
+            // Теперь мы помещаем наши кнопки в массив тулбара, в том порядке, кокой хотим видеть на экране
+            keyboardToolbar.items = [flexBarButton, doneButton]
         }
     }
 
